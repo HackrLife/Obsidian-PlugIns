@@ -1,9 +1,9 @@
 # Publishes one plugin from this repo to its own release repo.
 #
-# Trigger: push a tag named <plugin-id>@<version>, for example literature-matrix@1.0.0.
-# The workflow builds plugins/<plugin-id>, copies that folder into HackrLife/<plugin-id>,
-# tags it <version> and creates a GitHub release with main.js, manifest.json and styles.css.
-# Obsidian's directory reviews each new release in that repo automatically.
+# Trigger: push a tag named <plugin-id>@<version>, for example literature-matrix@1.0.1.
+# The workflow checks the tag against plugins/<plugin-id>/manifest.json and copies that
+# folder into HackrLife/<plugin-id>. The release repo's own Release workflow then builds the
+# plugin and creates the GitHub release. Obsidian reviews each new release automatically.
 #
 # One-time setup: add a repository secret PUBLISH_TOKEN, a fine-grained GitHub token with
 # Contents: read and write on the HackrLife/<plugin-id> release repos.
@@ -45,12 +45,6 @@ jobs:
             exit 1
           fi
 
-      - name: Build
-        working-directory: plugins/${{ steps.tag.outputs.id }}
-        run: |
-          npm install --no-audit --no-fund
-          npm run build
-
       - name: Sync the plugin folder to its release repo
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
@@ -59,7 +53,7 @@ jobs:
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/HackrLife/${ID}.git" release-repo
           rsync -a --delete \
-            --exclude ".git" --exclude "node_modules" --exclude "build" --exclude "main.js" \
+            --exclude ".git" --exclude ".github" --exclude "node_modules" --exclude "build" --exclude "main.js" \
             "plugins/${ID}/" release-repo/
           cd release-repo
           git checkout -B main
@@ -68,19 +62,3 @@ jobs:
           git add -A
           git diff --cached --quiet || git commit -m "Release ${VERSION}"
           git push origin main
-          git tag "${VERSION}"
-          git push origin "${VERSION}"
-
-      - name: Create the release
-        env:
-          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-          ID: ${{ steps.tag.outputs.id }}
-          VERSION: ${{ steps.tag.outputs.version }}
-        working-directory: plugins/${{ steps.tag.outputs.id }}
-        run: |
-          ASSETS="main.js manifest.json"
-          [ -f styles.css ] && ASSETS="$ASSETS styles.css"
-          gh release create "${VERSION}" $ASSETS \
-            --repo "HackrLife/${ID}" \
-            --title "${VERSION}" \
-            --notes "Release ${VERSION}"
