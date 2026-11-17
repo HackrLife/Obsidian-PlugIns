@@ -6,7 +6,7 @@ Source for every Obsidian plugin I build, one folder per plugin. All of them are
 
 | Plugin | What it does | Status | Install |
 | --- | --- | --- | --- |
-| [Literature Matrix](plugins/literature-matrix) | Compare research notes side by side in a synthesis matrix, with papers as rows and sections such as Method, Data, Findings and Gaps as columns. | 1.0.0 released | [HackrLife/literature-matrix](https://github.com/HackrLife/literature-matrix) |
+| [Literature Matrix](plugins/literature-matrix) | Compare research notes side by side in a synthesis matrix, with papers as rows and sections such as Method, Data, Findings and Gaps as columns. | 1.0.1 released, submitted | [HackrLife/literature-matrix](https://github.com/HackrLife/literature-matrix) |
 | [Research Experiment Record](plugins/research-experiment-record) | Turn a research note into a linked experiment record with a hypothesis, method, metrics, evidence, and results. | 1.0.0, preparing submission | [HackrLife/research-experiment-record](https://github.com/HackrLife/research-experiment-record) |
 
 ## How this repo is organised
@@ -44,7 +44,7 @@ The publish workflow needs one repository secret, `PUBLISH_TOKEN`: a fine-graine
 
 ## Adding a plugin
 
-1. Create the empty release repo `HackrLife/<plugin-id>` (public, no README) and add it to `PUBLISH_TOKEN`. Copy `.github/workflows/release.yml` from an existing release repo into it.
+1. Create the empty release repo `HackrLife/<plugin-id>` (public, no README) and add it to `PUBLISH_TOKEN`. Copy `templates/release.yml` into it as `.github/workflows/release.yml`.
 2. Add `plugins/<plugin-id>/` with the files above and a row in the table.
 3. Release `1.0.0` as above, then submit the release repo once at [community.obsidian.md](https://community.obsidian.md).
 
