@@ -7,13 +7,14 @@ Source for every Obsidian plugin I build, one folder per plugin. All of them are
 | Plugin | What it does | Status | Install |
 | --- | --- | --- | --- |
 | [Literature Matrix](plugins/literature-matrix) | Compare research notes side by side in a synthesis matrix, with papers as rows and sections such as Method, Data, Findings and Gaps as columns. | 1.0.0 released | [HackrLife/literature-matrix](https://github.com/HackrLife/literature-matrix) |
+| [Research Experiment Record](plugins/research-experiment-record) | Turn a research note into a linked experiment record with a hypothesis, method, metrics, evidence, and results. | 1.0.0, preparing submission | [HackrLife/research-experiment-record](https://github.com/HackrLife/research-experiment-record) |
 
 ## How this repo is organised
 
 ```
 plugins/
   <plugin-id>/          one folder per plugin, named by its manifest id
-    src/main.ts         source
+    src/main.*          source
     styles.css
     manifest.json       id, name, version, minAppVersion
     versions.json       plugin version → minimum app version
