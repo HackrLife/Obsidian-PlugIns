@@ -78,7 +78,7 @@ Reference lists come from OpenAlex and are as complete as the publisher's deposi
 
 ## Install
 
-Works on Obsidian 1.0 and later, on desktop and mobile. Search for **Citation Snowball** in **Settings → Community plugins → Browse**, then select Install and Enable.
+Works on Obsidian 1.4 and later, on desktop and mobile. Search for **Citation Snowball** in **Settings → Community plugins → Browse**, then select Install and Enable.
 
 To install by hand, download `main.js`, `manifest.json` and `styles.css` from the latest release into `<your vault>/.obsidian/plugins/citation-snowball/`, then enable the plugin in Settings.
 

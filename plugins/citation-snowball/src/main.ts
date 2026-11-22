@@ -6,6 +6,7 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	SettingDefinitionItem,
 	TFile,
 	normalizePath,
 	requestUrl,
@@ -1413,6 +1414,11 @@ class SnowballModal extends Modal {
 /* Settings tab                                                        */
 /* ------------------------------------------------------------------ */
 
+const TEMPLATE_DESC =
+	"Optional. Path to a note used as the body instead of the sections above. Placeholders: {{title}}, {{authors}}, {{year}}, {{venue}}, {{doi}}, {{arxiv}}, {{url}}, {{pdf}}, {{abstract}}, {{citation}}, {{citekey}}, {{cited_by}}.";
+const KEY_DESC =
+	"Optional and free from openalex.org/settings/api. Single imports work without it; a key gives ten times the daily allowance for snowballing.";
+
 type TextKey = "folder" | "tag" | "fileName" | "sections" | "templatePath" | "openAlexKey" | "email";
 type ToggleKey = "includeAbstract" | "keepLog" | "openAfterImport";
 
@@ -1424,6 +1430,97 @@ class CitationSnowballSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	/** Declarative settings for Obsidian 1.13 and later, which also makes them searchable. */
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				type: "group",
+				heading: "Where notes go",
+				items: [
+					{
+						name: "Folder",
+						desc: "New literature notes and the snowball log go here. Leave empty for the vault root.",
+						control: { type: "folder", key: "folder", placeholder: "Example: Research/Papers", includeRoot: true },
+					},
+					{
+						name: "Tag",
+						desc: "Added to every imported paper. Leave empty for no tag.",
+						control: { type: "text", key: "tag", placeholder: "Example: paper" },
+					},
+					{
+						name: "File name",
+						desc: "Use {{title}}, {{author}}, {{year}} and {{citekey}}. Example: {{author}} {{year}} {{title}}.",
+						control: { type: "text", key: "fileName", placeholder: "{{title}}" },
+					},
+					{
+						name: "Open the note after a single import",
+						desc: "Open the new note when you import one paper.",
+						control: { type: "toggle", key: "openAfterImport" },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Note contents",
+				items: [
+					{
+						name: "Sections",
+						desc: "Empty headings added to every new note, separated by commas. The defaults match the Literature Matrix columns.",
+						control: { type: "text", key: "sections", placeholder: "Method, Data, Findings, Gaps" },
+					},
+					{
+						name: "Include the abstract",
+						desc: "Add the abstract under its own heading when the source has one.",
+						control: { type: "toggle", key: "includeAbstract" },
+					},
+					{
+						name: "Template note",
+						desc: TEMPLATE_DESC,
+						control: { type: "text", key: "templatePath", placeholder: "Example: Templates/Paper" },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Snowballing",
+				items: [
+					{
+						name: "Keep a snowball log",
+						desc: "Record each search in a Snowball log note: seed, direction, papers found, already in the vault and imported.",
+						control: { type: "toggle", key: "keepLog" },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Sources",
+				items: [
+					{
+						name: "OpenAlex API key",
+						desc: KEY_DESC,
+						control: { type: "text", key: "openAlexKey", placeholder: "Paste your key" },
+					},
+					{
+						name: "Contact email",
+						desc: "Optional. Sent to Crossref with fallback lookups so they can contact you about heavy use.",
+						control: { type: "text", key: "email", placeholder: "you@example.com" },
+					},
+				],
+			},
+		];
+	}
+
+	getControlValue(key: string): unknown {
+		return this.plugin.settings[key as keyof CitationSnowballSettings];
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		const settings = this.plugin.settings as unknown as Record<string, unknown>;
+		settings[key] = value;
+		await this.plugin.saveSettings();
+	}
+
+	/** Settings page for Obsidian versions before 1.13, which have no declarative settings. */
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
@@ -1466,7 +1563,7 @@ class CitationSnowballSettingTab extends PluginSettingTab {
 		toggle("Include the abstract", "Add the abstract under its own heading when the source has one.", "includeAbstract");
 		text(
 			"Template note",
-			"Optional. Path to a note used as the body instead of the sections above. Placeholders: {{title}}, {{authors}}, {{year}}, {{venue}}, {{doi}}, {{arxiv}}, {{url}}, {{pdf}}, {{abstract}}, {{citation}}, {{citekey}}, {{cited_by}}.",
+			TEMPLATE_DESC,
 			"templatePath",
 			"Example: Templates/Paper",
 		);
@@ -1477,7 +1574,7 @@ class CitationSnowballSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName("Sources").setHeading();
 		text(
 			"OpenAlex API key",
-			"Optional and free from openalex.org/settings/api. Single imports work without it; a key gives ten times the daily allowance for snowballing.",
+			KEY_DESC,
 			"openAlexKey",
 			"Paste your key",
 		);
