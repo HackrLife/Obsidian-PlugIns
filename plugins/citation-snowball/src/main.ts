@@ -723,7 +723,7 @@ export default class CitationSnowballPlugin extends Plugin {
 	buildVaultIndex(): Map<string, TFile> {
 		const index = new Map<string, TFile>();
 		for (const file of this.app.vault.getMarkdownFiles()) {
-			const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+			const fm: Record<string, unknown> | undefined = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			if (!fm) continue;
 			for (const id of idsFromFrontmatter(fm)) {
 				const key = idKey(id);
@@ -800,8 +800,8 @@ export default class CitationSnowballPlugin extends Plugin {
 
 	async snowballFromActiveNote(): Promise<void> {
 		const file = this.app.workspace.getActiveFile();
-		const fm = file
-			? (this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined)
+		const fm: Record<string, unknown> | undefined = file
+			? this.app.metadataCache.getFileCache(file)?.frontmatter
 			: undefined;
 		const ids = fm ? idsFromFrontmatter(fm) : [];
 		if (!file || ids.length === 0) {

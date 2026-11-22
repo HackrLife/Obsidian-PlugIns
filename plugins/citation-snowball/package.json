@@ -1,6 +1,6 @@
 {
 	"name": "citation-snowball",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Import papers by DOI, arXiv or PubMed ID, then follow their references and citations to pick the next papers and turn them into literature notes.",
 	"main": "main.js",
 	"private": true,
