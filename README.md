@@ -8,7 +8,7 @@ Source for every Obsidian plugin I build, one folder per plugin. All of them are
 | --- | --- | --- | --- |
 | [Literature Matrix](plugins/literature-matrix) | Compare research notes side by side in a synthesis matrix, with papers as rows and sections such as Method, Data, Findings and Gaps as columns. | 1.0.2, live | [Obsidian directory](https://community.obsidian.md/plugins/literature-matrix) |
 | [Research Experiment Record](plugins/research-experiment-record) | Turn a research note into a linked experiment record with a hypothesis, method, metrics, evidence, and results. | 1.0.0, preparing submission | [HackrLife/research-experiment-record](https://github.com/HackrLife/research-experiment-record) |
-| [Citation Snowball](plugins/citation-snowball) | Import papers by DOI, arXiv or PubMed ID, then follow their references and citations to pick the next papers and turn them into literature notes. | 1.0.0, released, awaiting directory review | [HackrLife/Citation-Snowball](https://github.com/HackrLife/Citation-Snowball) |
+| [Citation Snowball](plugins/citation-snowball) | Import papers by DOI, arXiv or PubMed ID, then follow their references and citations to pick the next papers and turn them into literature notes. | 1.0.1, released, awaiting directory review | [HackrLife/Citation-Snowball](https://github.com/HackrLife/Citation-Snowball) |
 
 ## How this repo is organised
 

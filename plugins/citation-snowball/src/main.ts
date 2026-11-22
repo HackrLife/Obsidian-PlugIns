@@ -6,7 +6,6 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
-	SettingDefinitionItem,
 	TFile,
 	normalizePath,
 	requestUrl,
@@ -863,7 +862,8 @@ export default class CitationSnowballPlugin extends Plugin {
 		const row = `| ${todayIso()} | ${this.linkTo(seed, path)} | ${direction === "reference" ? "Backward (references)" : "Forward (cited by)"} | ${found} | ${inVault} | ${imported.length} | ${links} |`;
 		const existing = this.app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) {
-			await this.app.vault.process(existing, (data) => `${data.replace(/\s+$/, "")}\n${row}\n`);
+			const data = await this.app.vault.read(existing);
+			await this.app.vault.modify(existing, `${data.replace(/\s+$/, "")}\n${row}\n`);
 		} else {
 			const header = [
 				"Every snowball search, so the review can be reported and repeated.",
@@ -924,7 +924,7 @@ class ImportModal extends Modal {
 	}
 
 	onOpen(): void {
-		this.setTitle(this.editor ? "Import papers and insert links" : "Import papers");
+		this.titleEl.setText(this.editor ? "Import papers and insert links" : "Import papers");
 		const { contentEl } = this;
 		contentEl.addClass("cs-import");
 		contentEl.createEl("p", {
@@ -1032,7 +1032,7 @@ class SeedModal extends Modal {
 	}
 
 	onOpen(): void {
-		this.setTitle("Snowball from a paper");
+		this.titleEl.setText("Snowball from a paper");
 		const { contentEl } = this;
 		contentEl.createEl("p", {
 			cls: "cs-hint",
@@ -1115,7 +1115,7 @@ class SnowballModal extends Modal {
 
 	onOpen(): void {
 		this.modalEl.addClass("cs-snowball-modal");
-		this.setTitle("Citation snowball");
+		this.titleEl.setText("Citation snowball");
 		const { contentEl } = this;
 		contentEl.addClass("cs-snowball");
 
@@ -1413,6 +1413,9 @@ class SnowballModal extends Modal {
 /* Settings tab                                                        */
 /* ------------------------------------------------------------------ */
 
+type TextKey = "folder" | "tag" | "fileName" | "sections" | "templatePath" | "openAlexKey" | "email";
+type ToggleKey = "includeAbstract" | "keepLog" | "openAfterImport";
+
 class CitationSnowballSettingTab extends PluginSettingTab {
 	private plugin: CitationSnowballPlugin;
 
@@ -1421,93 +1424,64 @@ class CitationSnowballSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	getSettingDefinitions(): SettingDefinitionItem[] {
-		return [
-			{
-				type: "group",
-				heading: "Where notes go",
-				items: [
-					{
-						name: "Folder",
-						desc: "New literature notes and the snowball log go here. Leave empty for the vault root.",
-						control: { type: "folder", key: "folder", placeholder: "Example: Research/Papers", includeRoot: true },
-					},
-					{
-						name: "Tag",
-						desc: "Added to every imported paper. Leave empty for no tag.",
-						control: { type: "text", key: "tag", placeholder: "Example: paper" },
-					},
-					{
-						name: "File name",
-						desc: "Use {{title}}, {{author}}, {{year}} and {{citekey}}. Example: {{author}} {{year}} {{title}}.",
-						control: { type: "text", key: "fileName", placeholder: "{{title}}" },
-					},
-					{
-						name: "Open the note after a single import",
-						desc: "Open the new note when you import one paper.",
-						control: { type: "toggle", key: "openAfterImport" },
-					},
-				],
-			},
-			{
-				type: "group",
-				heading: "Note contents",
-				items: [
-					{
-						name: "Sections",
-						desc: "Empty headings added to every new note, separated by commas. The defaults match the Literature Matrix columns.",
-						control: { type: "text", key: "sections", placeholder: "Method, Data, Findings, Gaps" },
-					},
-					{
-						name: "Include the abstract",
-						desc: "Add the abstract under its own heading when the source has one.",
-						control: { type: "toggle", key: "includeAbstract" },
-					},
-					{
-						name: "Template note",
-						desc: "Optional. Path to a note used as the body instead of the sections above. Placeholders: {{title}}, {{authors}}, {{year}}, {{venue}}, {{doi}}, {{arxiv}}, {{url}}, {{pdf}}, {{abstract}}, {{citation}}, {{citekey}}, {{cited_by}}.",
-						control: { type: "text", key: "templatePath", placeholder: "Example: Templates/Paper" },
-					},
-				],
-			},
-			{
-				type: "group",
-				heading: "Snowballing",
-				items: [
-					{
-						name: "Keep a snowball log",
-						desc: "Record each search in a Snowball log note: seed, direction, papers found, already in the vault and imported.",
-						control: { type: "toggle", key: "keepLog" },
-					},
-				],
-			},
-			{
-				type: "group",
-				heading: "Sources",
-				items: [
-					{
-						name: "OpenAlex API key",
-						desc: "Optional and free from openalex.org/settings/api. Single imports work without it; a key gives ten times the daily allowance for snowballing.",
-						control: { type: "text", key: "openAlexKey", placeholder: "Paste your key" },
-					},
-					{
-						name: "Contact email",
-						desc: "Optional. Sent to Crossref with fallback lookups so they can contact you about heavy use.",
-						control: { type: "text", key: "email", placeholder: "you@example.com" },
-					},
-				],
-			},
-		];
-	}
+	display(): void {
+		const { containerEl } = this;
+		containerEl.empty();
+		const settings = this.plugin.settings;
+		const save = async () => this.plugin.saveSettings();
 
-	getControlValue(key: string): unknown {
-		return this.plugin.settings[key as keyof CitationSnowballSettings];
-	}
+		const text = (name: string, desc: string, key: TextKey, placeholder: string) =>
+			new Setting(containerEl)
+				.setName(name)
+				.setDesc(desc)
+				.addText((input) =>
+					input
+						.setPlaceholder(placeholder)
+						.setValue(settings[key])
+						.onChange(async (value) => {
+							settings[key] = value;
+							await save();
+						}),
+				);
 
-	async setControlValue(key: string, value: unknown): Promise<void> {
-		const settings = this.plugin.settings as unknown as Record<string, unknown>;
-		settings[key] = value;
-		await this.plugin.saveSettings();
+		const toggle = (name: string, desc: string, key: ToggleKey) =>
+			new Setting(containerEl)
+				.setName(name)
+				.setDesc(desc)
+				.addToggle((input) =>
+					input.setValue(settings[key]).onChange(async (value) => {
+						settings[key] = value;
+						await save();
+					}),
+				);
+
+		new Setting(containerEl).setName("Where notes go").setHeading();
+		text("Folder", "New literature notes and the snowball log go here. Leave empty for the vault root.", "folder", "Example: Research/Papers");
+		text("Tag", "Added to every imported paper. Leave empty for no tag.", "tag", "Example: paper");
+		text("File name", "Use {{title}}, {{author}}, {{year}} and {{citekey}}. Example: {{author}} {{year}} {{title}}.", "fileName", "{{title}}");
+		toggle("Open the note after a single import", "Open the new note when you import one paper.", "openAfterImport");
+
+		new Setting(containerEl).setName("Note contents").setHeading();
+		text("Sections", "Empty headings added to every new note, separated by commas. The defaults match the Literature Matrix columns.", "sections", "Method, Data, Findings, Gaps");
+		toggle("Include the abstract", "Add the abstract under its own heading when the source has one.", "includeAbstract");
+		text(
+			"Template note",
+			"Optional. Path to a note used as the body instead of the sections above. Placeholders: {{title}}, {{authors}}, {{year}}, {{venue}}, {{doi}}, {{arxiv}}, {{url}}, {{pdf}}, {{abstract}}, {{citation}}, {{citekey}}, {{cited_by}}.",
+			"templatePath",
+			"Example: Templates/Paper",
+		);
+
+		new Setting(containerEl).setName("Snowballing").setHeading();
+		toggle("Keep a snowball log", "Record each search in a Snowball log note: seed, direction, papers found, already in the vault and imported.", "keepLog");
+
+		new Setting(containerEl).setName("Sources").setHeading();
+		text(
+			"OpenAlex API key",
+			"Optional and free from openalex.org/settings/api. Single imports work without it; a key gives ten times the daily allowance for snowballing.",
+			"openAlexKey",
+			"Paste your key",
+		);
+		text("Contact email", "Optional. Sent to Crossref with fallback lookups so they can contact you about heavy use.", "email", "you@example.com");
 	}
 }
 

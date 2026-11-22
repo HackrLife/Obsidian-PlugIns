@@ -1,8 +1,8 @@
 {
 	"id": "citation-snowball",
 	"name": "Citation Snowball",
-	"version": "1.0.0",
-	"minAppVersion": "1.13.0",
+	"version": "1.0.1",
+	"minAppVersion": "1.0.0",
 	"description": "Import papers by DOI, arXiv or PubMed ID, then follow their references and citations to pick the next papers and turn them into literature notes.",
 	"author": "Dev Das",
 	"isDesktopOnly": false
